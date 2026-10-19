@@ -178,7 +178,7 @@ function vote(choice) {
     user.history.push(choice);
   }
 
-  if (choice === "D. DON'T CLICK !!!") {
+  if (choice === "E. DON'T CLICK !!!") {
     user.baitCount = (user.baitCount || 0) + 1;
   }
 
