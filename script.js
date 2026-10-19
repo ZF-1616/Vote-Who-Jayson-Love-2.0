@@ -1,4 +1,15 @@
-﻿const USERS_KEY = "voteWhoMing_users";
+const SUPABASE_URL = "https://katosmlcvogcrkltplci.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_WDomn2dsEOAoZ1Y3nn_Uqg_ii4oNSgC";
+
+const { createClient } = window.supabase;
+
+const supabaseClient = createClient(
+  SUPABASE_URL,
+  SUPABASE_PUBLISHABLE_KEY
+);
+
+//og code start here
+const USERS_KEY = "voteWhoMing_users";
 const CURRENT_USER_KEY = "voteWhoMing_currentUser";
 
 window.addEventListener("load", () => {
