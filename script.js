@@ -13,7 +13,7 @@ const USERS_KEY = "voteWhoMing_users";
 const CURRENT_USER_KEY = "voteWhoMing_currentUser";
 
 window.addEventListener("load", () => {
-  if (document.body.contains(document.getElementById("login-card"))) {
+  if (document.getElementById("login-card")) {
     initializeLoginPage();
   }
 });
@@ -40,11 +40,22 @@ function clearSession() {
 }
 
 function initializeLoginPage() {
-  const session = getSession();
-  renderSavedUsers();
+  const { data, error } = await supabaseClient.auth.getSession();
 
-  if (session && session.username) {
-    showVotePanel(session.username);
+  if (error) {
+    console.error("Session error:", error.message);
+    return;
+  }
+
+  const session = data.session;
+
+  if (session) {
+    const username =
+      session.user.user_metadata?.username ||
+      session.user.email?.split("@")[0] ||
+      "Voter";
+
+    showVotePanel(username);
   }
 }
 
@@ -75,96 +86,112 @@ function fillUsername(value) {
   }
 }
 
-function login() {
-  const username = document.getElementById("login-username").value.trim();
+
+async function login() {
+  const email = document.getElementById("login-email").value.trim();
   const password = document.getElementById("login-password").value;
   const message = document.getElementById("login-message");
+
   message.textContent = "";
 
-  if (!username || !password) {
-    message.textContent = "Please enter both username and password.";
+  if (!email || !password) {
+    message.textContent = "Please enter your email and password.";
     return;
   }
 
-  const users = loadUsers();
-  const user = users[username.toLowerCase()];
+  const { data, error } = await supabaseClient.auth.signInWithPassword({
+    email,
+    password
+  });
 
-  if (!user || user.password !== password) {
-    message.textContent = "Login failed. Check your credentials or sign up first.";
+  if (error) {
+    message.textContent = "Login failed: " + error.message;
     return;
   }
 
-  setSession(user.username);
-  renderSavedUsers();
-  showVotePanel(user.username);
+  const username =
+    data.user.user_metadata?.username ||
+    data.user.email?.split("@")[0] ||
+    "Voter";
+
+  showVotePanel(username);
 }
 
-function signup() {
+
+
+async function signup() {
   const username = document.getElementById("signup-username").value.trim();
+  const email = document.getElementById("signup-email").value.trim();
   const password = document.getElementById("signup-password").value;
   const confirm = document.getElementById("signup-confirm").value;
   const message = document.getElementById("signup-message");
+
   message.textContent = "";
 
-  if (!username || !password || !confirm) {
-    message.textContent = "Fill in every field to create an account.";
+  if (!username || !email || !password || !confirm) {
+    message.textContent = "Please fill in every field.";
     return;
   }
 
   if (password.length < 6) {
-    message.textContent = "Use at least 6 characters for your password.";
+    message.textContent = "Password must be at least 6 characters.";
     return;
   }
 
   if (password !== confirm) {
-    message.textContent = "Passwords do not match. Try again.";
+    message.textContent = "Passwords do not match.";
     return;
   }
 
-  const users = loadUsers();
-  const key = username.toLowerCase();
+  message.textContent = "Creating your account...";
 
-  if (users[key]) {
-    message.textContent = "That username is already taken. Choose another one.";
+  const { data, error } = await supabaseClient.auth.signUp({
+    email,
+    password,
+    options: {
+      data: {
+        username: username
+      }
+    }
+  });
+
+  if (error) {
+    message.textContent = "Signup failed: " + error.message;
     return;
   }
 
-  users[key] = { username, password, vote: null, history: [], baitCount: 0 };
-  saveUsers(users);
-  message.textContent = "Account created successfully. Redirecting to login...";
-
-  setTimeout(() => {
+  if (data.session) {
+    message.textContent = "Account created! Redirecting...";
     window.location.href = "index.html";
-  }, 1200);
+  } else {
+    message.textContent =
+      "Account created! Please check your email to confirm your account, then log in.";
+  }
 }
+
 
 function showVotePanel(username) {
   const loginCard = document.getElementById("login-card");
   const voteCard = document.getElementById("vote-card");
   const greeting = document.getElementById("greeting");
   const previousChoice = document.getElementById("previous-choice");
-  const users = loadUsers();
-  const user = users[username.toLowerCase()];
 
-  if (loginCard) {
-    loginCard.classList.add("hidden");
-  }
-  if (voteCard) {
-    voteCard.classList.remove("hidden");
-  }
-  if (greeting) {
-    greeting.textContent = `Welcome, ${username}`;
-  }
+  if (loginCard) loginCard.classList.add("hidden");
+  if (voteCard) voteCard.classList.remove("hidden");
+  if (greeting) greeting.textContent = `Welcome, ${username}`;
 
-  if (previousChoice) {
-    previousChoice.textContent = user && user.vote ? user.vote : "none";
-  }
-
-  setSelectedVote(user?.vote || null);
+  // Cloud vote history will be connected in the next step.
+  if (previousChoice) previousChoice.textContent = "Loading soon...";
 }
 
-function logout() {
-  clearSession();
+async function logout() {
+  const { error } = await supabaseClient.auth.signOut();
+
+  if (error) {
+    console.error("Logout failed:", error.message);
+    return;
+  }
+
   window.location.reload();
 }
 
