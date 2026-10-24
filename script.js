@@ -39,7 +39,7 @@ function clearSession() {
   localStorage.removeItem(CURRENT_USER_KEY);
 }
 
-function initializeLoginPage() {
+async function initializeLoginPage() {
   const { data, error } = await supabaseClient.auth.getSession();
 
   if (error) {
@@ -119,7 +119,7 @@ async function login() {
 
 
 
-function signup() {
+async function signup() {
   const username = document.getElementById("signup-username").value.trim();
   const password = document.getElementById("signup-password").value;
   const email = document.getElementById("signup-email").value.trim();
