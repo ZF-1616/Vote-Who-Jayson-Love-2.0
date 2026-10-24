@@ -193,43 +193,109 @@ async function logout() {
   window.location.reload();
 }
 
-function vote(choice) {
-  const session = getSession();
+async function vote(choice) {
   const feedback = document.getElementById("vote-feedback");
 
-  if (!session || !session.username) {
-    feedback.textContent = "Please log in before voting.";
+  const { data: sessionData, error: sessionError } =
+    await supabaseClient.auth.getSession();
+
+  if (sessionError || !sessionData.session) {
+    if (feedback) {
+      feedback.textContent = "Please log in before voting.";
+    }
     return;
   }
 
-  const users = loadUsers();
-  const userKey = session.username.toLowerCase();
-  const user = users[userKey] || { username: session.username, password: "", vote: null, history: [], baitCount: 0 };
-  const previousVote = user.vote || null;
+  const user = sessionData.session.user;
+  const userId = user.id;
+  const username =
+    user.user_metadata?.username ||
+    user.email?.split("@")[0] ||
+    "Voter";
 
-  if (!Array.isArray(user.history)) {
-    user.history = [];
+  const validChoices = [
+    "A. 1001",
+    "B. M·F",
+    "C. 0203",
+    "D. No One",
+    "E. DON'T CLICK !!!"
+  ];
+
+  if (!validChoices.includes(choice)) {
+    if (feedback) feedback.textContent = "Invalid vote choice.";
+    return;
   }
-  if (user.history.length === 0 || user.history[user.history.length - 1] !== choice) {
-    user.history.push(choice);
+
+  if (feedback) feedback.textContent = "Saving your vote...";
+
+  // Get the user's previous vote.
+  const { data: previousData, error: previousError } =
+    await supabaseClient
+      .from("votes")
+      .select("choice")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+  if (previousError) {
+    console.error("Could not load previous vote:", previousError);
+    if (feedback) {
+      feedback.textContent =
+        "Could not load your previous vote: " + previousError.message;
+    }
+    return;
   }
 
-  if (choice === "E. DON'T CLICK !!!") {
-    user.baitCount = (user.baitCount || 0) + 1;
+  const previousVote = previousData?.choice || null;
+  const baited = choice === "E. DON'T CLICK !!!";
+
+  // Save or update the user's current vote.
+  const { error: voteError } = await supabaseClient
+    .from("votes")
+    .upsert(
+      {
+        user_id: userId,
+        choice: choice,
+        updated_at: new Date().toISOString()
+      },
+      { onConflict: "user_id" }
+    );
+
+  if (voteError) {
+    console.error("Vote save failed:", voteError);
+    if (feedback) {
+      feedback.textContent = "Could not save vote: " + voteError.message;
+    }
+    return;
   }
 
-  user.vote = choice;
-  users[userKey] = user;
-  saveUsers(users);
+  // Add an entry to the vote history.
+  const { error: historyError } = await supabaseClient
+    .from("vote_history")
+    .insert({
+      user_id: userId,
+      choice: choice,
+      baited: baited
+    });
 
-  const total = Object.values(users).filter((savedUser) => savedUser.vote).length;
-  feedback.textContent = previousVote === choice
-    ? `You already selected ${choice}. Total voters: ${total}.`
-    : `Thanks, ${session.username}! You voted for ${choice}. Total voters: ${total}.`;
+  if (historyError) {
+    console.error("History save failed:", historyError);
+    if (feedback) {
+      feedback.textContent =
+        "Vote saved, but history failed: " + historyError.message;
+    }
+    return;
+  }
+
   setSelectedVote(choice);
+
   const previousChoice = document.getElementById("previous-choice");
-  if (previousChoice) {
-    previousChoice.textContent = choice;
+  if (previousChoice) previousChoice.textContent = choice;
+
+  if (feedback) {
+    feedback.textContent =
+      previousVote === choice
+        ? `You already selected ${choice}. Your history has been updated.`
+        : `Thanks, ${username}! You voted for ${choice}.`;
   }
 }
 
