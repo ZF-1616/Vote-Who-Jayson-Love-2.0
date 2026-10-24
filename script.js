@@ -119,7 +119,7 @@ async function login() {
 
 
 
-async function signup() {
+function signup() {
   const username = document.getElementById("signup-username").value.trim();
   const password = document.getElementById("signup-password").value;
   const email = document.getElementById("signup-email").value.trim();
