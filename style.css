@@ -320,8 +320,14 @@ saved-users {
 .vote-comfirmation {
   display: none;
   position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.7);
+  top: 50%;
+  left: 50%;
+  background: rgba(14, 24, 42, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
+  padding: 40px;
+  transform: translate(-50%, -50%);
+  border-radius: 24px;
   justify-content: center;
   align-items: center;
   z-index: 9999;
@@ -331,7 +337,29 @@ saved-users {
   display: flex;
 }
 
+.confirmation-content {
+  padding: 30px;
+  border-radius: 15px;
+  text-align: center;
+  width: 300px;
+  max-width: 85%;
+}
+
+.confirmation-choice {
+  margin: 15px 0;
+  font-weight: bold;
+}
+
 #confirmation-close {
+  background: linear-gradient(135deg, #ff6c89, #ff9f68);
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 1rem;
+  font-weight: 700;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 20px 45px rgba(255, 108, 137, 0.18);
   padding: 10px 20px;
   cursor: pointer;
 }
