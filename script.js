@@ -267,6 +267,7 @@ async function vote(choice) {
     }
     return;
   }
+  showVoteConfirmation(choice);
 
   // Add an entry to the vote history.
   const { error: historyError } = await supabaseClient
@@ -326,6 +327,15 @@ function jumpscare() {
   setTimeout(() => {
     jumpScare.classList.remove("visible");
   }, 2000);
+}
+
+function showVoteConfirmation(choice) {
+  document.querySelector(".popup-message").textContent = "Vote Saved!";
+  document.getElementById("confirmation-message").textContent =
+    "Your vote has been successfully recorded!";
+  document.getElementById("confirmation-choice").textContent =
+    "You voted for: " + choice;
+  document.getElementById("vote-comfirmation").classList.add("show");
 }
 
 function renderSecretPage() {
