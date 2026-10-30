@@ -350,6 +350,10 @@ saved-users {
   font-weight: bold;
 }
 
+.jayson-approve {
+  padding: 60px;
+}
+
 #confirmation-close {
   background: linear-gradient(135deg, #ff6c89, #ff9f68);
   color: white;
