@@ -317,6 +317,25 @@ saved-users {
   box-shadow: 0 32px 80px rgba(0, 0, 0, 0.7);
 }
 
+.vote-comfirmation {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.vote-comfirmation.show {
+  display: flex;
+}
+
+#confirmation-close {
+  padding: 10px 20px;
+  cursor: pointer;
+}
+
 @media (max-width: 840px) {
   .main-grid {
     grid-template-columns: 1fr;
