@@ -62,11 +62,22 @@
     </main>
   </div>
 
+<div class="vote-comfirmation" id="vote-comfirmation">
+  <div class="confirmation-content">
+    <h3 class="popup-message"></h3>
+    <p id="confirmation-message"></p>
+    <div class="confirmation-choice" id="confirmation-choice"></div>
+    <button id="confirmation-close" onclick="logout()">
+      Logout
+    </button>
+  </div>
+</div>
+  
   <div class="jump-scare" id="jump-scare">
     <img src="jump-scare.png" alt="Jump-scare" />
   </div>
-
   <audio id="jump-scare-audio" src="attached_assets/jumpscare.mp3" preload="auto"></audio>
+  
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="script.js"></script>
 </body>
